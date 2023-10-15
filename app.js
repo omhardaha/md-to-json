@@ -1,7 +1,7 @@
 const fs = require('fs');
+const slugify = require('slugify');
 const MarkdownIt = require('markdown-it');
 const htmlTableToJson = require('html-table-to-json');
-const slugify = require('slugify');
 
 
 const slug = (str) => slugify(str, {
@@ -12,11 +12,15 @@ const slug = (str) => slugify(str, {
     trim: true, // trim leading and trailing replacement chars, defaults to `true`
 });
 
-function isValid(tab) {
-    if (!tab.length) {
-        // console.log("not found");
-        return null;
-    }
+const validData = (tab) => {
+    if (tab.task_name === '' || Number(tab.task_name)) return null;
+    if (!tab.qty || !Number.isInteger(tab.qty) || tab.qty <= 0) return null;
+    if (!tab.price || tab.price <= 0) return null;
+    return tab;
+};
+
+const isValid = (tab) => {
+    if (!tab.length) return [];
 
     const tabs = tab.map((t) => {
         const nt = {};
@@ -26,93 +30,28 @@ function isValid(tab) {
         });
         return nt;
     });
-    // console.log(tabs);
-
-    // console.log(tabs);
-
-    const shouldExistsKeys = ['task_description', 'qty', 'price', 'task_name'];
-    const keys = Object.keys(tabs[0]);
-
-    const check = keys.filter((k) => !shouldExistsKeys.includes(k));
 
     // checking is all 4 are avail in array or not
-    if (check.length) {
-        return null;
-    }
+    const shouldExistsKeys = ['task_name', 'task_description', 'qty', 'price'];
+    const keys = Object.keys(tabs[0]);
+    const check = keys.filter((k) => !shouldExistsKeys.includes(k));
+    if (check.length) return [];
 
-    // console.log(tab);
+
+    // creating final tables with Total attr & valid data
     const finalTabs = tabs.map((t) => {
-        const nt = { total: t.qty * t.total, ...t };
-        return nt;
+        const nt = {};
+        nt.task_name = t.task_name;
+        nt.task_description = t.task_description;
+        nt.qty = Number(t.qty);
+        nt.price = Number(t.price);
+        nt.total = nt.qty * nt.price;
+        return validData(nt);
     });
 
-    // for (let i = 0; i < tab.length; i += 1) {
-    //     const obj = tab[i];
-    //     const newObj = {
-    //         [column1]: '',
-    //         [column2]: '',
-    //         [column3]: 1,
-    //         [column4]: 10.0,
-    //     };
-
-    //     // Task Name
-    //     const taskName = obj[column1];
-    //     if (taskName === Number(taskName)) {
-    //         // console.log("not found");
-    //         return null;
-    //     }
-    //     newObj[column1] = taskName;
-
-    //     // Task Description
-    //     const tastDescription = obj[column1];
-    //     newObj[column2] = tastDescription;
-
-    //     // QTY
-    //     const QTY = Number(obj[column3]);
-    //     if (!QTY || !Number.isInteger(QTY) || QTY <= 0) {
-    //         // console.log("not found");
-    //         return null;
-    //     }
-    //     newObj[column3] = parseInt(QTY, 10);
-
-    //     // Price
-    //     const Price = Number(obj[column4]);
-    //     if (!Price || QTY <= 0) {
-    //         // console.log("not found");
-    //         return null;
-    //     }
-
-    //     newObj[column4] = Price;
-    //     newObj.Total = Price * QTY;
-
-    //     // console.log(newObj);
-    //     table[i] = newObj;
-    // }
-	console.log(finalTabs);
-
-    return finalTabs;
-}
-
-// function htmlToArrayOfObjects(dataHtml) {
-//     const tables = htmlTableToJson.parse(dataHtml);
-//     // console.log(tables.results);
-//     let extractedTable;
-
-//     tables.results.forEach((table) => {
-//         // if (validTable(table)) console.log(table);
-//         const tempTable = isValid(table);
-
-//         if (tempTable) {
-//             extractedTable = tempTable;
-//             console.log(JSON.stringify(extractedTable));
-//         }
-//     });
-
-//     return extractedTable;
-// }
-
-// fs.readFile('data.md', 'utf8', (err, data) => {
-// });
+    // filtering the invalid data
+    return finalTabs.filter((t) => t);
+};
 
 
 try {
@@ -135,14 +74,16 @@ try {
         throw new Error('Error: no table found in the Markdown');
     }
 
-    const validTables = tables.map((tab) => isValid(tab));
+    let validTables = tables.map((tab) => isValid(tab));
+    validTables = validTables.filter((tab) => (tab.length)); // removing the null values and empty tables
 
     // console.log('valid ->', validTables);
     if (!validTables.length) {
         throw new Error('Error: no valid table found');
     }
-    // printing the first table
-    // console.log(tables[0]);
+
+    console.log('cr', validTables);
+    // printing the first valid table
     // console.log('File content:', data);
 } catch (err) {
     console.error(err);
