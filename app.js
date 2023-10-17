@@ -1,4 +1,4 @@
-import fs from 'fs';
+import fs, { writeFileSync } from 'fs';
 import slugify from 'slugify';
 import MarkdownIt from 'markdown-it';
 import ora from 'ora';
@@ -17,19 +17,18 @@ const slug = (str) => slugify(str, {
 
 const validData = (tab, i) => {
     const t = `row ${i + 1}`;
-    let err = '';
+    const err = [];
 
-    if (tab.TaskName === '') err = err.concat(`${t} Task Name : can't be Empty.\n`);
-    else if (Number(tab.TaskName)) err = err.concat(`${t} Task Name : Task Name should be a String.\n`);
+    if (tab.TaskName === '') err.push(`${t} Task Name : can't be Empty.\n`);
+    else if (Number(tab.TaskName)) err.push(`${t} Task Name : Task Name should be a String.\n`);
 
-    if (!tab.QTY) err = err.concat(`${t} QTY : Quantity cannot be null and should a valid integer.\n`);
-    else if (!Number.isInteger(tab.QTY)) err = err.concat(`${t} QTY : Quantity should be an Integer.\n`);
-    else if (tab.QTY <= 0) err = err.concat(`${t} QTY : Quantity cannot be less than 0.\n`);
+    if (!tab.QTY) err.push(`${t} QTY : Quantity cannot be null and should a valid integer.\n`);
+    else if (!Number.isInteger(tab.QTY)) err.push(`${t} QTY : Quantity should be an Integer.\n`);
+    else if (tab.QTY <= 0) err.push(`${t} QTY : Quantity cannot be less than 0.\n`);
 
-    if (!tab.Price) err = err.concat(`${t} Price : Price cannot be null and should be a valid Number.\n`);
-    else if (tab.Price <= 0) err = err.concat(`${t} Price : Price should be greater then 0.\n`);
+    if (!tab.Price) err.push(`${t} Price : Price cannot be null and should be a valid Number.\n`);
+    else if (tab.Price <= 0) err.push(`${t} Price : Price should be greater then 0.\n`);
 
-    // console.log(err);
     return err;
 };
 
@@ -56,7 +55,7 @@ const isValid = (tab) => {
         .addRowMatrix(tabs.map((t, i) => [i + 1, t.task_name, t.task_description, t.qty, t.price]));
 
     // creating final tables with Total attbr & valid data
-    let errors = '';
+    let errors = [];
     let eraw = 0;
     const results = tabs.map((t, index) => {
         const nt = {};
@@ -66,12 +65,9 @@ const isValid = (tab) => {
         nt.Price = Number(t.price);
         nt.Total = nt.QTY * nt.Price;
 
-        // console.log(validData(nt, index).error);
         const vdata = validData(nt, index);
-        // console.log(vdata);
-        if (vdata !== '') {
+        if (vdata.length) {
             errors = errors.concat(vdata);
-            // console.log(vdata);
             eraw += 1;
             return null;
         }
@@ -79,7 +75,7 @@ const isValid = (tab) => {
     });
     return {
         results: JSON.stringify(results.filter((t) => t)),
-        message: ` ${tTemp.toString()}${eraw !== 0 ? `${eraw} rows eliminated.\n` : ''}${errors} \nJSON Data - ${JSON.stringify(results.filter((t) => t))}`,
+        message: ` ${tTemp.toString()}${eraw !== 0 ? `${eraw} rows eliminated.\n` : ''}${errors.join('')} \nJSON Data - ${JSON.stringify(results.filter((t) => t))}`,
         // errors,
     };
 };
@@ -87,56 +83,82 @@ const isValid = (tab) => {
 
 try {
     // cheking the file exits or not
-    const spinner = ora('Check if File(data.md) Exists Or Not').start();
+    const spinner = ora('Check if File(data.md) Exists Or Not.').start();
     if (!fs.existsSync('data.md')) {
-        spinner.fail('Error: no such file exists');
-        throw new Error('Error: no such file exists');
+        spinner.fail('Error: no such file exists.');
+        throw new Error('Error: no such file exists.');
     }
     spinner.succeed();
 
 
     // reading the file
-    spinner.start('Check if File is Empty');
+    spinner.start('Check if File is Empty.');
     const data = fs.readFileSync('data.md', 'utf8');
     if (!data) {
-        spinner.fail('Error: file is empty');
-        throw new Error('Error: file is empty');
+        spinner.fail('Error: file is empty.');
+        throw new Error('Error: file is empty.');
     }
     spinner.succeed();
 
 
     // Converting data into HTML
-    spinner.start('Converting markdown into HTML');
+    spinner.start('Converting markdown into HTML.');
     const md = new MarkdownIt();
     const htmlData = md.render(data);
 
     spinner.succeed();
-    spinner.start('check if it is valid html');
+    spinner.start('Check if it is valid HTML.');
     if (!isHtml(htmlData)) {
-        spinner.fail('Error: invalid HTML');
-        throw new Error('Error: invalid HTML');
+        spinner.fail('Error: invalid HTML.');
+        throw new Error('Error: invalid HTML.');
     }
     spinner.succeed();
 
     // Extracting Table From HTML
-    spinner.start('Extracting Tables into JSON From HTML');
+    spinner.start('Extracting Tables into JSON From HTML.');
     const tables = htmlTableToJson.parse(htmlData).results; // array of all tables in the markdown
+    spinner.succeed();
 
-    console.log(tables);
+    spinner.start('Check if table found.');
+    // console.log(tables);
     if (!tables.length) {
-        throw new Error('Error: no table found in the Markdown');
+        spinner.fail('Error: no table found.');
+        throw new Error('Error: no table found in the Markdown.');
     }
+    spinner.succeed(`${tables.length} tables found.`);
 
+
+    spinner.start('Removing invalid tables.');
     let validTables = tables.map((tab) => isValid(tab));
     validTables = validTables.filter((tab) => tab); // removing the null values and empty tables
+    spinner.succeed();
     // console.log(validTables.results);
 
+    spinner.start('Check if any valid table found.');
     if (!validTables.length) {
+        spinner.fail('Error: no valid table found');
         throw new Error('Error: no valid table found');
     }
+    spinner.succeed();
 
     // printing the first valid table
     console.log(validTables[0].message);
+
+    const currentDate = new Date();
+    // const d = currentDate.toLocaleDateString();
+    // console.log(d);
+    if (!fs.existsSync('./output')) {
+        fs.mkdirSync('./output');
+    }
+    spinner.start('Creating Output File');
+    const fileName = `md-to-json-output-${currentDate.getFullYear()}-${currentDate.getMonth()}-${currentDate.getDate()}-${currentDate.getHours()}-${currentDate.getMinutes()}-${currentDate.getSeconds()}-${currentDate.getMilliseconds()}.json`;
+    try {
+        writeFileSync(`./output/${fileName}`, validTables[0].results, 'utf8');
+    } catch (error) {
+        spinner.fail(chalk.red('Failed to create file'));
+        console.log(error);
+    }
+    spinner.succeed(chalk.whiteBright('File has been created ') + chalk.green(`./output/${fileName}`));
     spinner.stop();
 } catch (err) {
     console.error(err);
