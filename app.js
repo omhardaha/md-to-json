@@ -75,8 +75,7 @@ const isValid = (tab) => {
     });
     return {
         results: JSON.stringify(results.filter((t) => t)),
-        message: ` ${tTemp.toString()}${eraw !== 0 ? `${eraw} rows eliminated.\n` : ''}${errors.join('')} \nJSON Data - ${JSON.stringify(results.filter((t) => t))}`,
-        // errors,
+        message: ` ${tTemp.toString()}${eraw !== 0 ? `${eraw} rows eliminated.\n` : ''}${errors.join('')} \n`,
     };
 };
 
@@ -142,22 +141,27 @@ try {
     spinner.succeed();
 
     // printing the first valid table
-    console.log(validTables[0].message);
+    console.log(chalk.yellowBright(validTables[0].message));
+    spinner.start('Check if Data is valid.');
+    spinner.succeed();
 
     const currentDate = new Date();
     // const d = currentDate.toLocaleDateString();
     // console.log(d);
+    spinner.start('Creating Output Dir if its not exist.');
     if (!fs.existsSync('./output')) {
         fs.mkdirSync('./output');
     }
-    spinner.start('Creating Output File');
+    spinner.succeed();
+    spinner.start('Creating Output File.');
     const fileName = `md-to-json-output-${currentDate.getFullYear()}-${currentDate.getMonth()}-${currentDate.getDate()}-${currentDate.getHours()}-${currentDate.getMinutes()}-${currentDate.getSeconds()}-${currentDate.getMilliseconds()}.json`;
     try {
         writeFileSync(`./output/${fileName}`, validTables[0].results, 'utf8');
     } catch (error) {
-        spinner.fail(chalk.red('Failed to create file'));
+        spinner.fail(chalk.red('Failed to create file.'));
         console.log(error);
     }
+    spinner.succeed();
     spinner.succeed(chalk.whiteBright('File has been created ') + chalk.green(`./output/${fileName}`));
     spinner.stop();
 } catch (err) {
