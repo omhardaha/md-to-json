@@ -1,0 +1,42 @@
+err = err.concat(${t} col 5 : Price should be greater then 0.\n);
+
+Ye jhantjhat kyu karoge? string jodne wali? tumhare paas array hai na? array to string me convert nahi kar sakte jab jarurat ho?
+
+
+htmlTableToJson.parse(htmlData).results
+
+Isme Bhi results key hai ki nahi pahle check to karoge na?
+
+const htmlData = md.render(data);
+
+Iske baad me bhi validation gayab hai
+
+tumne data.md to empty karke check kiya bhi hai
+
+
+/1. pahle file check karni hai
+/2. fir usme data hai ki nahi dekhna hai
+/3. fir markdown data ko html bana hai
+/4. fir dekhna hai ki html banke aaya ki nahi
+
+/5. fir html se json bana hai tables ka
+6. fir dekhna hai table aai ki nahi
+7. fir aai tables me se invalid hata deni hai valid rakh leni hai
+8. fir jitni bhi valid aai hai unme se pahli wali leni hai bus
+9. fir valid table ke data validate karna hai
+10. error hogi to sari errors ko acche se jama ke dikhana hai
+11. error nahi hogi to process karke aage badhkar file create karni hai json
+
+ora
+chalk
+
+
+Fir Abhi:
+1. JSDoc Likhna Hai
+2. Comments Sudhaarne Hai
+3. Variable Name Sudhaarne Hai
+4. Function Name Sudhaarne Hai
+5. Fir "Ora" Use Karna Hai
+6. Fir Delay Ke Liye Ek Custom Function Bana Hai
+7. Fir Promise Use Karna Hai
+8. Fir Task Bana Ke Promise.all run Karna Hai

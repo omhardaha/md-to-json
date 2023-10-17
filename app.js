@@ -1,6 +1,9 @@
 import fs from 'fs';
 import slugify from 'slugify';
 import MarkdownIt from 'markdown-it';
+import ora from 'ora';
+import chalk from 'chalk';
+import isHtml from 'is-html';
 import htmlTableToJson from 'html-table-to-json';
 import { AsciiTable3, AlignmentEnum } from 'ascii-table3';
 
@@ -16,15 +19,15 @@ const validData = (tab, i) => {
     const t = `row ${i + 1}`;
     let err = '';
 
-    if (tab.TaskName === '') err = err.concat(`${t} col 2 : Task Name cannot be Empty.\n`);
-    else if (Number(tab.TaskName)) err = err.concat(`${t} col 2 : Task Name should be a String.\n`);
+    if (tab.TaskName === '') err = err.concat(`${t} Task Name : can't be Empty.\n`);
+    else if (Number(tab.TaskName)) err = err.concat(`${t} Task Name : Task Name should be a String.\n`);
 
-    if (!tab.QTY) err = err.concat(`${t} col 4 : Quantity cannot be null and should a valid integer.\n`);
-    else if (!Number.isInteger(tab.QTY)) err = err.concat(`${t} col 4 : Quantity should be an Integer.\n`);
-    else if (tab.QTY <= 0) err = err.concat(`${t} col 4 : Quantity cannot be less than 0.\n`);
+    if (!tab.QTY) err = err.concat(`${t} QTY : Quantity cannot be null and should a valid integer.\n`);
+    else if (!Number.isInteger(tab.QTY)) err = err.concat(`${t} QTY : Quantity should be an Integer.\n`);
+    else if (tab.QTY <= 0) err = err.concat(`${t} QTY : Quantity cannot be less than 0.\n`);
 
-    if (!tab.Price) err = err.concat(`${t} col 5 : Price cannot be null and should be a valid Number.\n`);
-    else if (tab.Price <= 0) err = err.concat(`${t} col 5 : Price should be greater then 0.\n`);
+    if (!tab.Price) err = err.concat(`${t} Price : Price cannot be null and should be a valid Number.\n`);
+    else if (tab.Price <= 0) err = err.concat(`${t} Price : Price should be greater then 0.\n`);
 
     // console.log(err);
     return err;
@@ -84,20 +87,42 @@ const isValid = (tab) => {
 
 try {
     // cheking the file exits or not
+    const spinner = ora('Check if File(data.md) Exists Or Not').start();
     if (!fs.existsSync('data.md')) {
-        throw new Error('Error: no such file exists or file is empty');
+        spinner.fail('Error: no such file exists');
+        throw new Error('Error: no such file exists');
     }
+    spinner.succeed();
+
 
     // reading the file
+    spinner.start('Check if File is Empty');
     const data = fs.readFileSync('data.md', 'utf8');
+    if (!data) {
+        spinner.fail('Error: file is empty');
+        throw new Error('Error: file is empty');
+    }
+    spinner.succeed();
+
 
     // Converting data into HTML
+    spinner.start('Converting markdown into HTML');
     const md = new MarkdownIt();
     const htmlData = md.render(data);
 
+    spinner.succeed();
+    spinner.start('check if it is valid html');
+    if (!isHtml(htmlData)) {
+        spinner.fail('Error: invalid HTML');
+        throw new Error('Error: invalid HTML');
+    }
+    spinner.succeed();
+
     // Extracting Table From HTML
+    spinner.start('Extracting Tables into JSON From HTML');
     const tables = htmlTableToJson.parse(htmlData).results; // array of all tables in the markdown
 
+    console.log(tables);
     if (!tables.length) {
         throw new Error('Error: no table found in the Markdown');
     }
@@ -112,6 +137,8 @@ try {
 
     // printing the first valid table
     console.log(validTables[0].message);
+    spinner.stop();
 } catch (err) {
     console.error(err);
 }
+
