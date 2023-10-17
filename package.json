@@ -2,6 +2,7 @@
 	"name": "mrkd2json",
 	"version": "1.0.0",
 	"description": "trying",
+	"type": "module", 
 	"main": "yes",
 	"scripts": {
 		"pretest": "echo \"This is pre test\"",

@@ -1,12 +1,8 @@
-const fs = require('fs');
-const slugify = require('slugify');
-const MarkdownIt = require('markdown-it');
-const htmlTableToJson = require('html-table-to-json');
-
-const { AsciiTable3, AlignmentEnum } = require('ascii-table3');
-
-// create table
-
+import fs from 'fs';
+import slugify from 'slugify';
+import MarkdownIt from 'markdown-it';
+import htmlTableToJson from 'html-table-to-json';
+import { AsciiTable3, AlignmentEnum } from 'ascii-table3';
 
 const slug = (str) => slugify(str, {
     replacement: '_', // replace spaces with replacement character, defaults to `-`
@@ -16,21 +12,22 @@ const slug = (str) => slugify(str, {
     trim: true, // trim leading and trailing replacement chars, defaults to `true`
 });
 
-const validData = (tab, index) => {
-    const t = `raw ${index + 1}`;
-    let eemes = '';
+const validData = (tab, i) => {
+    const t = `row ${i + 1}`;
+    let err = '';
 
-    if (tab.TaskName === '') eemes += `${t} col 2 : Task Name cannot be Empty .\n`;
-    else if (Number(tab.TaskName)) eemes += `${t} col 2 : Task Name should be a String .\n`;
+    if (tab.TaskName === '') err = err.concat(`${t} col 2 : Task Name cannot be Empty.\n`);
+    else if (Number(tab.TaskName)) err = err.concat(`${t} col 2 : Task Name should be a String.\n`);
 
-    if (!tab.QTY) eemes += `${t} col 4 :Quantity cannot be null and should a valid integer .\n`;
-    else if (!Number.isInteger(tab.QTY)) eemes += `${t} col 4 :Quantity should be a Integer .\n`;
-    else if (tab.QTY <= 0) eemes += `${t} col 4 :Quantity cannot be less than 0 .\n`;
+    if (!tab.QTY) err = err.concat(`${t} col 4 : Quantity cannot be null and should a valid integer.\n`);
+    else if (!Number.isInteger(tab.QTY)) err = err.concat(`${t} col 4 : Quantity should be an Integer.\n`);
+    else if (tab.QTY <= 0) err = err.concat(`${t} col 4 : Quantity cannot be less than 0.\n`);
 
-    if (!tab.Price) eemes += `${t} col 5 : Price cannot be null and should be a valid Number .\n`;
-    else if (tab.Price <= 0) eemes += `${t} col 5 : Price should be greater then 0 .\n`;
+    if (!tab.Price) err = err.concat(`${t} col 5 : Price cannot be null and should be a valid Number.\n`);
+    else if (tab.Price <= 0) err = err.concat(`${t} col 5 : Price should be greater then 0.\n`);
 
-    return eemes;
+    // console.log(err);
+    return err;
 };
 
 const isValid = (tab) => {
@@ -47,18 +44,17 @@ const isValid = (tab) => {
     const shouldExistsKeys = ['task_name', 'task_description', 'qty', 'price'];
     const keys = Object.keys(tabs[0]);
     const check = keys.filter((k) => !shouldExistsKeys.includes(k));
-    if (check.length) return { results: [], table: false };
+    if (check.length) return null;
 
 
     const tTemp = new AsciiTable3('Your table')
-        .setHeading('No.', 'TaskName', 'TaskDescription', 'QTY', 'Price')
+        .setHeading('No.', 'Task Name', 'Task Description', 'QTY', 'Price')
         .setAlign(5, AlignmentEnum.CENTER)
-        .addRowMatrix(tabs.map((t, i) => [i + 1, t.task_name, t.task_description, t.price, t.qty]));
-
-    // console.log(tTemp.toString());
+        .addRowMatrix(tabs.map((t, i) => [i + 1, t.task_name, t.task_description, t.qty, t.price]));
 
     // creating final tables with Total attbr & valid data
-    const errors = '';
+    let errors = '';
+    let eraw = 0;
     const results = tabs.map((t, index) => {
         const nt = {};
         nt.TaskName = t.task_name;
@@ -69,26 +65,19 @@ const isValid = (tab) => {
 
         // console.log(validData(nt, index).error);
         const vdata = validData(nt, index);
-        if (vdata.error) {
-            errors.push(vdata.er);
+        // console.log(vdata);
+        if (vdata !== '') {
+            errors = errors.concat(vdata);
+            // console.log(vdata);
+            eraw += 1;
             return null;
         }
         return nt;
     });
-
-    // console.log(errors.toString());
-    // const x = 'dd';
-    // errors.forEach((q) => {
-    //     // x.concat(q.TaskName);
-    //     console.log(q.TaskName);
-    // });
-    // console.log(x.concat(errors[0].TaskName));
-
     return {
-        results: results.filter((t) => t),
-        table: tTemp.toString(),
-        message: errors.length ? `${errors.length} row were eliminated ` : 'No Error found',
-        errors,
+        results: JSON.stringify(results.filter((t) => t)),
+        message: ` ${tTemp.toString()}${eraw !== 0 ? `${eraw} rows eliminated.\n` : ''}${errors} \nJSON Data - ${JSON.stringify(results.filter((t) => t))}`,
+        // errors,
     };
 };
 
@@ -113,8 +102,8 @@ try {
         throw new Error('Error: no table found in the Markdown');
     }
 
-    let validTables = tables.map((tab) => (tab.length ? isValid(tab) : { results: [], errors: [] }));
-    validTables = validTables.filter((tab) => (tab.results.length || tab.errors.length)); // removing the null values and empty tables
+    let validTables = tables.map((tab) => isValid(tab));
+    validTables = validTables.filter((tab) => tab); // removing the null values and empty tables
     // console.log(validTables.results);
 
     if (!validTables.length) {
@@ -122,7 +111,7 @@ try {
     }
 
     // printing the first valid table
-    // console.log(validTables[0]);
+    console.log(validTables[0].message);
 } catch (err) {
     console.error(err);
 }
