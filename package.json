@@ -19,6 +19,7 @@
 	"author": "omhardaha1",
 	"license": "ISC",
 	"dependencies": {
+		"ascii-table3": "^0.9.0",
 		"html-table-to-json": "^1.0.0",
 		"html-to-json-parser": "^1.1.0",
 		"jsonfromtable": "^3.1.2",

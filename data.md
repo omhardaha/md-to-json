@@ -56,7 +56,7 @@ Here are the details of the tasks you need to complete:
 
 | Task                                           description       | QTY | price | task Name |
 | ---------------------- | --- | ----- | --------- |
-| Description for Task A | 5   | 10.00 | Task A    |
+| 2Description for Task A | 5   | 10.00 | Task A    |
 | Description for Task B | 8   | 7.50  | Task B    |
 | Description for Task C | 8   | 20.00 | Task C    |
 | Description for Task D | 2   | 5.00  | Task D    |
@@ -64,9 +64,9 @@ Here are the details of the tasks you need to complete:
 
 | Task Name | Task Description       | QTY | Price |
 | --------- | ---------------------- | --- | ----- |
-| b2  | Description for Task A | 5.2   | 10.00 |
+| Task A    | Description for Task A | 5   | 10.00 |
 | Task B    | Description for Task B | 8   | 7.50  |
-| Task C    | Description for Task C | 8   | 20.00 |
+|           | Description for Task C | a8.a4   | a20.00 |
 | Task D    | Description for Task D | 2   | 5.00  |
 | Task E    | Description for Task E | 6   | 15.00 |
 
