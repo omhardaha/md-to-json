@@ -20,13 +20,14 @@ const validData = (tab, i) => {
     const err = [];
 
     if (tab.TaskName === '') err.push(`${t} Task Name : can't be Empty.\n`);
+    if (tab.TaskName.length === '') err.push(`${t} Task Name : can't be Empty.\n`);
     else if (Number(tab.TaskName)) err.push(`${t} Task Name : Task Name should be a String.\n`);
 
-    if (!tab.QTY) err.push(`${t} QTY : Quantity cannot be null and should a valid integer.\n`);
-    else if (!Number.isInteger(tab.QTY)) err.push(`${t} QTY : Quantity should be an Integer.\n`);
+    if (!tab.QTY) err.push(`${t} QTY : can't be Empty and should a valid Digits.\n`);
+    else if (!Number.isInteger(tab.QTY)) err.push(`${t} QTY : Quantity should be in Digits.\n`);
     else if (tab.QTY <= 0) err.push(`${t} QTY : Quantity cannot be less than 0.\n`);
 
-    if (!tab.Price) err.push(`${t} Price : Price cannot be null and should be a valid Number.\n`);
+    if (!tab.Price) err.push(`${t} Price : Price can't be Empty. and should be a valid Digits.\n`);
     else if (tab.Price <= 0) err.push(`${t} Price : Price should be greater then 0.\n`);
 
     return err;
@@ -46,15 +47,25 @@ const isValid = (tab) => {
     const shouldExistsKeys = ['task_name', 'task_description', 'qty', 'price'];
     const keys = Object.keys(tabs[0]);
     const check = keys.filter((k) => !shouldExistsKeys.includes(k));
-    if (check.length) return null;
+    return check.length === 0;
+};
 
-
-    const tTemp = new AsciiTable3('Your table')
-        .setHeading('No.', 'Task Name', 'Task Description', 'QTY', 'Price')
+const asciiTable = (tabs) => {
+    const originalKeys = Object.keys(tabs[0]);
+    const slugKey = originalKeys.map((k) => slug(k));
+    const keyMap = new Map();
+    slugKey.forEach((s, i) => {
+        keyMap[s] = originalKeys[i];
+    });
+    const tTemp = new AsciiTable3('Input table')
+        .setHeading('No.', keyMap.task_name, keyMap.task_description, keyMap.qty, keyMap.price)
         .setAlign(5, AlignmentEnum.CENTER)
-        .addRowMatrix(tabs.map((t, i) => [i + 1, t.task_name, t.task_description, t.qty, t.price]));
+        .addRowMatrix(tabs.map((t, i) => [i + 1, t[keyMap.task_name], t[keyMap.task_description], t[keyMap.qty], t[keyMap.price]]));
+    return tTemp.toString();
+};
 
-    // creating final tables with Total attbr & valid data
+const handleError = (tab) => {
+
     let errors = [];
     let eraw = 0;
     const results = tabs.map((t, index) => {
@@ -75,7 +86,7 @@ const isValid = (tab) => {
     });
     return {
         results: JSON.stringify(results.filter((t) => t)),
-        message: ` ${tTemp.toString()}${eraw !== 0 ? `${eraw} rows eliminated.\n` : ''}${errors.join('')} \n`,
+        message: `${eraw !== 0 ? `${eraw} rows eliminated.\n` : ''}${errors.join('')} \n`,
     };
 };
 
@@ -124,36 +135,40 @@ try {
         spinner.fail('Error: no table found.');
         throw new Error('Error: no table found in the Markdown.');
     }
-    spinner.succeed(`${tables.length} tables found.`);
+    spinner.succeed();
+    spinner.start(`${tables.length} tables found.`);
+    spinner.succeed();
 
 
     spinner.start('Removing invalid tables.');
-    let validTables = tables.map((tab) => isValid(tab));
-    validTables = validTables.filter((tab) => tab); // removing the null values and empty tables
+    const validTables = tables.filter((tab) => isValid(tab)); // removing the null values and empty tables
+    // console.log(validTables);
     spinner.succeed();
     // console.log(validTables.results);
 
-    spinner.start('Check if any valid table found.');
+    spinner.start('Check if any valid table left.');
     if (!validTables.length) {
         spinner.fail('Error: no valid table found');
         throw new Error('Error: no valid table found');
     }
     spinner.succeed();
+    spinner.start('Picking First Table');
+    spinner.succeed();
+
+    console.log(asciiTable(validTables[0]));
 
     // printing the first valid table
-    console.log(chalk.yellowBright(validTables[0].message));
+    // console.log(chalk.yellowBright(validTables[0].message));
     spinner.start('Check if Data is valid.');
     spinner.succeed();
 
-    const currentDate = new Date();
-    // const d = currentDate.toLocaleDateString();
-    // console.log(d);
     spinner.start('Creating Output Dir if its not exist.');
     if (!fs.existsSync('./output')) {
         fs.mkdirSync('./output');
     }
     spinner.succeed();
     spinner.start('Creating Output File.');
+    const currentDate = new Date();
     const fileName = `md-to-json-output-${currentDate.getFullYear()}-${currentDate.getMonth()}-${currentDate.getDate()}-${currentDate.getHours()}-${currentDate.getMinutes()}-${currentDate.getSeconds()}-${currentDate.getMilliseconds()}.json`;
     try {
         writeFileSync(`./output/${fileName}`, validTables[0].results, 'utf8');

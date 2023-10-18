@@ -55,7 +55,7 @@ Join us today and experience the difference.
 Here are the details of the tasks you need to complete:
 
 
-| Task Name | Task Description       | QTY | Price |
+| Task Name | Task Description       | QtY | Price |
 | --------- | ---------------------- | --- | ----- |
 | N_Task A    | Description for Task A | 5   | 10.00 |
 | N_Task B    | Description for Task B | 8   | 7.50  |
