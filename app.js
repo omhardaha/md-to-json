@@ -174,9 +174,10 @@ try {
     spinner.succeed();
     spinner.start('Creating Output File.');
     const currentDate = new Date();
+    const opData = JSON.stringify(validTables[0], null, '\t');
     const fileName = `md-to-json-output-${currentDate.getFullYear()}-${currentDate.getMonth()}-${currentDate.getDate()}-${currentDate.getHours()}-${currentDate.getMinutes()}-${currentDate.getSeconds()}-${currentDate.getMilliseconds()}.json`;
     try {
-        writeFileSync(`./output/${fileName}`, JSON.stringify(validTables[0]), 'utf8');
+        writeFileSync(`./output/${fileName}`, opData, 'utf8');
     } catch (error) {
         spinner.fail(chalk.red('Failed to create file.'));
         console.log(error);
