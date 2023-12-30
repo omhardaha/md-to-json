@@ -7,6 +7,11 @@ import isHtml from 'is-html';
 import htmlTableToJson from 'html-table-to-json';
 import { AsciiTable3, AlignmentEnum } from 'ascii-table3';
 
+/**
+ *
+ * @param {string} str
+ * @returns
+ */
 const slug = (str) => slugify(str, {
     replacement: '_', // replace spaces with replacement character, defaults to `-`
     remove: undefined, // remove characters that match regex, defaults to `undefined`
@@ -14,6 +19,13 @@ const slug = (str) => slugify(str, {
     strict: false, // language code of the locale to use
     trim: true, // trim leading and trailing replacement chars, defaults to `true`
 });
+
+/**
+ *
+ * @param {*} tab
+ * @param {number} i
+ * @returns
+ */
 
 const validData = (tab, i) => {
     const t = `row ${i + 1}`;
