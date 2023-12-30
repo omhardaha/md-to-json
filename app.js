@@ -20,32 +20,25 @@ const validData = (tab, i) => {
     const err = [];
 
     if (tab.TaskName === '') err.push(`${t} Task Name : can't be Empty.\n`);
-    if (tab.TaskName.length === '') err.push(`${t} Task Name : can't be Empty.\n`);
-    else if (Number(tab.TaskName)) err.push(`${t} Task Name : Task Name should be a String.\n`);
+    if (tab.TaskName.length < 5 || tab.TaskName.length > 80) err.push(`${t} Task Name : Minimum 5 characters and Maximum 80 chracters Allowed.\n`);
+    else if (Number(tab.TaskName)) err.push(`${t} Task Name : Task Name should be a text ex. MY_New_Task A34 ".\n`);
 
-    if (!tab.QTY) err.push(`${t} QTY : can't be Empty and should a valid Digits.\n`);
+    if (tab.TaskDescription.length > 150) err.push(`${t} Task Description : Maximum 150 Allowed.\n`);
+
+    if (!tab.QTY) err.push(`${t} QTY : Quantity can't be Empty and should a valid Digits.\n`);
     else if (!Number.isInteger(tab.QTY)) err.push(`${t} QTY : Quantity should be in Digits.\n`);
     else if (tab.QTY <= 0) err.push(`${t} QTY : Quantity cannot be less than 0.\n`);
 
-    if (!tab.Price) err.push(`${t} Price : Price can't be Empty. and should be a valid Digits.\n`);
+    if (!tab.Price) err.push(`${t} Price : Price can't be Empty. and should be a valid Numbers.\n`);
     else if (tab.Price <= 0) err.push(`${t} Price : Price should be greater then 0.\n`);
 
     return err;
 };
 
 const isValid = (tab) => {
-    const tabs = tab.map((t) => {
-        const nt = {};
-
-        Object.keys(t).forEach((key) => {
-            nt[slug(key)] = t[key];
-        });
-        return nt;
-    });
-
     // checking is all 4 are avail in array or not
     const shouldExistsKeys = ['task_name', 'task_description', 'qty', 'price'];
-    const keys = Object.keys(tabs[0]);
+    const keys = Object.keys(tab[0]);
     const check = keys.filter((k) => !shouldExistsKeys.includes(k));
     return check.length === 0;
 };
@@ -57,6 +50,7 @@ const asciiTable = (tabs) => {
     slugKey.forEach((s, i) => {
         keyMap[s] = originalKeys[i];
     });
+
     const tTemp = new AsciiTable3('Input table')
         .setHeading('No.', keyMap.task_name, keyMap.task_description, keyMap.qty, keyMap.price)
         .setAlign(5, AlignmentEnum.CENTER)
@@ -64,8 +58,7 @@ const asciiTable = (tabs) => {
     return tTemp.toString();
 };
 
-const handleError = (tab) => {
-
+const checkDataErrors = (tabs) => {
     let errors = [];
     let eraw = 0;
     const results = tabs.map((t, index) => {
@@ -100,7 +93,6 @@ try {
     }
     spinner.succeed();
 
-
     // reading the file
     spinner.start('Check if File is Empty.');
     const data = fs.readFileSync('data.md', 'utf8');
@@ -109,7 +101,6 @@ try {
         throw new Error('Error: file is empty.');
     }
     spinner.succeed();
-
 
     // Converting data into HTML
     spinner.start('Converting markdown into HTML.');
@@ -124,7 +115,7 @@ try {
     }
     spinner.succeed();
 
-    // Extracting Table From HTML
+    // Extracting Tables From HTML
     spinner.start('Extracting Tables into JSON From HTML.');
     const tables = htmlTableToJson.parse(htmlData).results; // array of all tables in the markdown
     spinner.succeed();
@@ -141,8 +132,19 @@ try {
 
 
     spinner.start('Removing invalid tables.');
-    const validTables = tables.filter((tab) => isValid(tab)); // removing the null values and empty tables
-    // console.log(validTables);
+
+    const slugTableTitle = tables.map((tab) => {
+        const newTable = tab.map((t) => {
+            const nt = {};
+
+            Object.keys(t).forEach((key) => {
+                nt[slug(key)] = t[key];
+            });
+            return nt;
+        });
+        return newTable;
+    });
+    const validTables = slugTableTitle.filter((tab) => isValid(tab)); // removing the null values and empty tables.
     spinner.succeed();
     // console.log(validTables.results);
 
@@ -152,16 +154,19 @@ try {
         throw new Error('Error: no valid table found');
     }
     spinner.succeed();
-    spinner.start('Picking First Table');
+    spinner.start('Picked First Table');
     spinner.succeed();
 
+    // console.log(validTables[0]);
     console.log(asciiTable(validTables[0]));
 
+    checkDataErrors(validTables[0]);
     // printing the first valid table
     // console.log(chalk.yellowBright(validTables[0].message));
     spinner.start('Check if Data is valid.');
     spinner.succeed();
 
+    console.log(validTables[0]);
     spinner.start('Creating Output Dir if its not exist.');
     if (!fs.existsSync('./output')) {
         fs.mkdirSync('./output');
@@ -171,7 +176,7 @@ try {
     const currentDate = new Date();
     const fileName = `md-to-json-output-${currentDate.getFullYear()}-${currentDate.getMonth()}-${currentDate.getDate()}-${currentDate.getHours()}-${currentDate.getMinutes()}-${currentDate.getSeconds()}-${currentDate.getMilliseconds()}.json`;
     try {
-        writeFileSync(`./output/${fileName}`, validTables[0].results, 'utf8');
+        writeFileSync(`./output/${fileName}`, JSON.stringify(validTables[0]), 'utf8');
     } catch (error) {
         spinner.fail(chalk.red('Failed to create file.'));
         console.log(error);

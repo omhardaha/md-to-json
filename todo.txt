@@ -1,18 +1,3 @@
-//err = err.concat(${t} col 5 : Price should be greater then 0.\n);
-
-//Ye jhantjhat kyu karoge? string jodne wali? tumhare paas array hai na? array to string me convert nahi kar sakte jab jarurat ho?
-
-
-//htmlTableToJson.parse(htmlData).results
-
-//Isme Bhi results key hai ki nahi pahle check to karoge na?
-
-//const htmlData = md.render(data);
-
-//Iske baad me bhi validation gayab hai
-
-//tumne data.md to empty karke check kiya bhi hai
-
 
 /1. pahle file check karni hai
 /2. fir usme data hai ki nahi dekhna hai
@@ -31,9 +16,9 @@
 /ora
 /chalk
 
-2-4 Validation Aur Ghusa Do Task Name Me.
+//2-4 Validation Aur Ghusa Do Task Name Me.
 //- Minimum 10 character and max 80 chracter ho.
-- Task Description me bhi laga do, minimum 30 and maximum 150
+//- Task Description me bhi laga do, minimum 30 and maximum 150
 // Qty me lagao, ki negative na ho aur 0 bhi na ho
 // Price me bhi lagao ki negative na ho 0 bhi na ho
 
@@ -41,9 +26,9 @@
 /- TaskName Me Space Nahi Hai
 /- TaskDescription Me Space Nahi Hai
 /-  Aur To Message Hi Galat Hai. Sahi Message Likho
-- Quantity Wala Error Message Sahi Se Likho, Normal Insaan Ki Bhasa Me
-- Task Name Wala Error Message Bhi Sahi Nahi Hai 23 Bhi Ek String Hi Hai, To Error Se Koi Samjh Hi nahi Sakta Hai Ki Galti Kya Hai
-- Price Wale Error Message Bhi Galat Hai 
+/- Quantity Wala Error Message Sahi Se Likho, Normal Insaan Ki Bhasa Me
+/- Task Name Wala Error Message Bhi Sahi Nahi Hai 23 Bhi Ek String Hi Hai, To Error Se Koi Samjh Hi nahi Sakta Hai Ki Galti Kya Hai
+/- Price Wale Error Message Bhi Galat Hai 
 
 
 Fir Abhi:
