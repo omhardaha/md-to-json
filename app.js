@@ -157,16 +157,13 @@ try {
     spinner.start('Picked First Table');
     spinner.succeed();
 
-    // console.log(validTables[0]);
     console.log(asciiTable(validTables[0]));
 
     checkDataErrors(validTables[0]);
     // printing the first valid table
-    // console.log(chalk.yellowBright(validTables[0].message));
     spinner.start('Check if Data is valid.');
     spinner.succeed();
 
-    console.log(validTables[0]);
     spinner.start('Creating Output Dir if its not exist.');
     if (!fs.existsSync('./output')) {
         fs.mkdirSync('./output');

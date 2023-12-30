@@ -25,7 +25,38 @@ Here are the details of the tasks you need to complete:
 ### Output
 
 ```
-[{"TaskName":"N_Task A","TaskDescription":"Description for Task A","QTY":5,"Price":10,"Total":50},{"TaskName":"N_Task B","TaskDescription":"Description for Task B","QTY":8,"Price":7.5,"Total":60},{"TaskName":"f","TaskDescription":"Description for Task C","QTY":3,"Price":20,"Total":60},{"TaskName":"N_Task D","TaskDescription":"Description for Task D","QTY":2,"Price":5,"Total":10},{"TaskName":"N_Task E","TaskDescription":"Description for Task E","QTY":6,"Price":15,"Total":90}]
+[
+	{
+		"task_name": "N_Task A",
+		"task_description": "Description for Task A",
+		"qty": "5",
+		"price": "10.00"
+	},
+	{
+		"task_name": "N_Task B",
+		"task_description": "Description for Task B",
+		"qty": "8",
+		"price": "7.50"
+	},
+	{
+		"task_name": "f",
+		"task_description": "Description for Task C",
+		"qty": "3",
+		"price": "20.00"
+	},
+	{
+		"task_name": "N_Task D",
+		"task_description": "Description for Task D",
+		"qty": "2",
+		"price": "5.00"
+	},
+	{
+		"task_name": "N_Task E",
+		"task_description": "Description for Task E",
+		"qty": "6",
+		"price": "15.00"
+	}
+]
 ```
 
 ## Key Features
