@@ -1,3 +1,4 @@
+
 import fs, { writeFileSync } from 'fs';
 import slugify from 'slugify';
 import MarkdownIt from 'markdown-it';
@@ -6,6 +7,16 @@ import chalk from 'chalk';
 import isHtml from 'is-html';
 import htmlTableToJson from 'html-table-to-json';
 import { AsciiTable3, AlignmentEnum } from 'ascii-table3';
+
+
+/**
+ @typedef table
+ @type {Object}
+ @property {string} task_name The x coordinate.
+ @property {string} task_description The y coordinate.
+ @property {string} qty The y coordinate.
+ @property {string} price The y coordinate.
+ */
 
 /**
  *
@@ -47,6 +58,12 @@ const validData = (tab, i) => {
     return err;
 };
 
+/**
+ *
+ * @param {[{}]} tab
+ * @returns {boolean}
+ */
+
 const isValid = (tab) => {
     // checking is all 4 are avail in array or not
     const shouldExistsKeys = ['task_name', 'task_description', 'qty', 'price'];
@@ -55,22 +72,31 @@ const isValid = (tab) => {
     return check.length === 0;
 };
 
-const asciiTable = (tabs) => {
-    const originalKeys = Object.keys(tabs[0]);
-    const slugKey = originalKeys.map((k) => slug(k));
-    const keyMap = new Map();
-    slugKey.forEach((s, i) => {
-        keyMap[s] = originalKeys[i];
-    });
+/**
+ *
+ * @param {[{task_name:string,task_description:string,qty:number,price:number}]} tabs
+ * @returns {string}
+ */
 
+const asciiTable = (tabs) => {
     const tTemp = new AsciiTable3('Input table')
-        .setHeading('No.', keyMap.task_name, keyMap.task_description, keyMap.qty, keyMap.price)
+        .setHeading('No.', 'task_name', 'task_description', 'qty', 'price')
         .setAlign(5, AlignmentEnum.CENTER)
-        .addRowMatrix(tabs.map((t, i) => [i + 1, t[keyMap.task_name], t[keyMap.task_description], t[keyMap.qty], t[keyMap.price]]));
+        .addRowMatrix(tabs.map((t, i) => [i + 1, t.task_name, t.task_description, t.qty, t.price]));
     return tTemp.toString();
 };
 
+/**
+ *
+ * @param {[{task_name:string,task_description:string,qty:number,price:number}]} tabs
+ * @returns {{}}
+ */
+
 const checkDataErrors = (tabs) => {
+/**
+* errors[]
+* @type {string[]}
+*/
     let errors = [];
     let eraw = 0;
     const results = tabs.map((t, index) => {
@@ -129,7 +155,12 @@ try {
 
     // Extracting Tables From HTML
     spinner.start('Extracting Tables into JSON From HTML.');
+    /**
+ * tables
+ * @type {[[{}]]}
+ */
     const tables = htmlTableToJson.parse(htmlData).results; // array of all tables in the markdown
+    // console.log(tables);
     spinner.succeed();
 
     spinner.start('Check if table found.');
@@ -145,6 +176,10 @@ try {
 
     spinner.start('Removing invalid tables.');
 
+    /**
+ * tables
+ * @type {{}[][]}
+ */
     const slugTableTitle = tables.map((tab) => {
         const newTable = tab.map((t) => {
             const nt = {};
@@ -156,6 +191,8 @@ try {
         });
         return newTable;
     });
+
+
     const validTables = slugTableTitle.filter((tab) => isValid(tab)); // removing the null values and empty tables.
     spinner.succeed();
     // console.log(validTables.results);

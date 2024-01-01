@@ -2,6 +2,10 @@
 	"compilerOptions": {
 		"allowJs": true,
 		"checkJs": true,
-		"strict": true
-	}
+		"strict": true,
+		"types": ["node"]
+	},"lib": [
+		"es2018",
+		"dom"
+	  ],
 }
